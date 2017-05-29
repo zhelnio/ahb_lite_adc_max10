@@ -219,20 +219,17 @@ module mfp_adc_max10_core
 
     always @ (posedge CLK) begin
         case(State)
-            S_IDLE  :   ActiveCell <= NextCell;
-            S_FIRST :   if(ADC_C_Ready) ActiveCell <= NextCell;
-            S_NEXT  :   if(ADC_C_Ready) ActiveCell <= NextCell;
+            S_IDLE  :   begin
+                            ActiveCell <= NextCell;
+                            filter <= (Next == S_FIRST) ? (filter << NextCell + 1 );
+                                                        : { `ADC_CELL_CNT { 1'b1 }};
+                        end
+            S_FIRST,
+            S_NEXT  :   if(ADC_C_Ready) begin
+                            ActiveCell <= NextCell;
+                            filter <= (filter << NextCell + 1 );
+                        end
 
-            S_LAST  :   filter <= { `ADC_CELL_CNT { 1'b1 }};
-        endcase
-
-        case(State)
-            S_IDLE  :   filter <= (Next == S_FIRST) ? (filter << NextCell + 1 );
-                                                    : { `ADC_CELL_CNT { 1'b1 }};
-
-            S_FIRST :   if(ADC_C_Ready) filter <= (filter << NextCell + 1 );
-            S_NEXT  :   if(ADC_C_Ready) filter <= (filter << NextCell + 1 );
-            
             S_LAST  :   filter <= { `ADC_CELL_CNT { 1'b1 }};
         endcase
     end
