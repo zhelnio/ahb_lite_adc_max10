@@ -47,8 +47,11 @@ set s1 ../../src/simulation/testbench/*.v
 
 vlog $p0   $i0   $s0 $s1
 
+vsim work.test_adcTest
+add wave -radix hex sim:/test_adcTest/*
 
-
+run -all
+wave zoom full
 
 
 
