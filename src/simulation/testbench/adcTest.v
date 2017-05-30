@@ -122,12 +122,12 @@ module test_adcTest;
             adc_clk_locked = 1'b0;
 
             //all channels enable
-            write ( `ADC_REG_ADMSK, { `ADC_CH_COUNT { 1'b1 } } );
+            write ( `ADC_REG_ADMSK,   (1'b1 << `ADC_CH_1) );
             read  ( `ADC_REG_ADMSK );
 
             //all options enable
-            write ( `ADC_REG_ADCS,   (1'b1 << `ADC_FIELD_ADCS_EN) | (1'b1 << `ADC_FIELD_ADCS_SC) 
-                                   | (1'b1 << `ADC_FIELD_ADCS_TE) | (1'b1 << `ADC_FIELD_ADCS_IE) );
+            write ( `ADC_REG_ADCS,    (1'b1 << `ADC_FIELD_ADCS_EN) | (1'b1 << `ADC_FIELD_ADCS_SC) 
+                                    | (1'b1 << `ADC_FIELD_ADCS_TE) | (1'b1 << `ADC_FIELD_ADCS_IE) );
             read  ( `ADC_REG_ADCS );
 
             repeat(3000) begin
