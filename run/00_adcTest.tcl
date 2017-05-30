@@ -49,6 +49,7 @@ vlog $p0   $i0   $s0 $s1
 
 vsim work.test_adcTest
 add wave -radix hex sim:/test_adcTest/*
+add wave -radix hex sim:/test_adcTest/mfp_adc_core/*
 
 run -all
 wave zoom full

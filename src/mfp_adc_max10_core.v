@@ -60,7 +60,7 @@ module mfp_adc_max10_core
     wire    ADCS_SC;    // ADC start conversion
     wire    ADCS_TE;    // ADC auto trigger enable
     wire    ADCS_IE;    // ADC interrupt enable
-    wire    ADCS_wr     = write_enable && write_addr == `ADC_REG_ADMSK;
+    wire    ADCS_wr     = write_enable && write_addr == `ADC_REG_ADCS;
 
     adc_reg #(.WIDTH(1)) r_ADCS_EN (CLK, RESETn, write_data[`ADC_FIELD_ADCS_EN], ADCS_wr, ADCS_EN );
     adc_reg #(.WIDTH(1)) r_ADCS_SC (CLK, RESETn, write_data[`ADC_FIELD_ADCS_SC], ADCS_wr, ADCS_SC );
@@ -79,11 +79,11 @@ module mfp_adc_max10_core
 
 
     //register read operations
-    wire    ADCS     = 32'b0 | (ADCS_IF << `ADC_FIELD_ADCS_IF)
-                             | (ADCS_IE << `ADC_FIELD_ADCS_IE)
-                             | (ADCS_TE << `ADC_FIELD_ADCS_TE)
-                             | (ADCS_SC << `ADC_FIELD_ADCS_SC)
-                             | (ADCS_EN << `ADC_FIELD_ADCS_EN);
+    wire [ 31:0 ] ADCS = 32'b0 | (ADCS_IF << `ADC_FIELD_ADCS_IF)
+                               | (ADCS_IE << `ADC_FIELD_ADCS_IE)
+                               | (ADCS_TE << `ADC_FIELD_ADCS_TE)
+                               | (ADCS_SC << `ADC_FIELD_ADCS_SC)
+                               | (ADCS_EN << `ADC_FIELD_ADCS_EN);
 
     always @ (*)
         case(read_addr)
