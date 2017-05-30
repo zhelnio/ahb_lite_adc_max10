@@ -61,24 +61,24 @@ endmodule
 `define ADC_REG_ADC6        8   // ADC channel 6 conversion results
 `define ADC_REG_ADCT        9   // ADC temperature channel conversion results
 
-`define ADC_CH_1            5'd1;
-`define ADC_CH_2            5'd2;
-`define ADC_CH_3            5'd3;
-`define ADC_CH_4            5'd4;
-`define ADC_CH_5            5'd5;
-`define ADC_CH_6            5'd6;
-`define ADC_CH_T            5'd17;
-`define ADC_CH_NONE         5'd18;
+`define ADC_CH_1            5'd1
+`define ADC_CH_2            5'd2
+`define ADC_CH_3            5'd3
+`define ADC_CH_4            5'd4
+`define ADC_CH_5            5'd5
+`define ADC_CH_6            5'd6
+`define ADC_CH_T            5'd17
+`define ADC_CH_NONE         5'd18
 
-`define ADC_CELL_CNT        3'h7;
+`define ADC_CELL_CNT        3'h7
 
-`define ADC_CELL_1          3'h0;
-`define ADC_CELL_2          3'h1;
-`define ADC_CELL_3          3'h2;
-`define ADC_CELL_4          3'h3;
-`define ADC_CELL_5          3'h4;
-`define ADC_CELL_6          3'h5;
-`define ADC_CELL_T          3'h6;
+`define ADC_CELL_1          3'h0
+`define ADC_CELL_2          3'h1
+`define ADC_CELL_3          3'h2
+`define ADC_CELL_4          3'h3
+`define ADC_CELL_5          3'h4
+`define ADC_CELL_6          3'h5
+`define ADC_CELL_T          3'h6
 
 // ADCS register bit nums
 `define ADC_FIELD_ADCS_EN   0
@@ -101,20 +101,20 @@ module mfp_adc_max10_core
     input                                    write_enable,
 
     // Altera MAX10 ADC side
-    output          ADC_C_Valid,
-    output [4:0]    ADC_C_Channel,
-    output          ADC_C_SOP,
-    output          ADC_C_EOP,
-    input           ADC_C_Ready,
-    input           ADC_R_Valid,
-    input  [4:0]    ADC_R_Channel,
-    input  [11:0]   ADC_R_Data,
-    input           ADC_R_SOP,
-    input           ADC_R_EOP,
+    output              ADC_C_Valid,
+    output reg [  4:0 ] ADC_C_Channel,
+    output              ADC_C_SOP,
+    output              ADC_C_EOP,
+    input               ADC_C_Ready,
+    input               ADC_R_Valid,
+    input      [  4:0 ] ADC_R_Channel,
+    input      [ 11:0 ] ADC_R_Data,
+    input               ADC_R_SOP,
+    input               ADC_R_EOP,
 
     // trigger and interrupt side
     input           ADC_Trigger,
-    output reg      ADC_Interrupt
+    output          ADC_Interrupt
 );
 
     // ADC conversion data
@@ -221,7 +221,7 @@ module mfp_adc_max10_core
         case(State)
             S_IDLE  :   begin
                             ActiveCell <= NextCell;
-                            filter <= (Next == S_FIRST) ? (filter << NextCell + 1 );
+                            filter <= (Next == S_FIRST) ? (filter << NextCell + 1 )
                                                         : { `ADC_CELL_CNT { 1'b1 }};
                         end
             S_FIRST,
@@ -243,7 +243,7 @@ module mfp_adc_max10_core
 
 
     //command output
-    wire [ 2 : 0 ] out;
+    reg    [ 2 : 0 ] out;
     assign { ADC_C_Valid, ADC_C_SOP, ADC_C_EOP } = out;
 
     always @ (*) begin
@@ -270,14 +270,14 @@ endmodule
 
 module adc_reg
 #(
-    parameter WIDTH = 32;
+    parameter WIDTH = 32
 )
 (
     input                        clk,
     input                        rst,
-    input      [ WIDTH - 1 : 0 ] in;
-    input                        wr;
-    output reg [ WIDTH - 1 : 0 ] out;
+    input      [ WIDTH - 1 : 0 ] in,
+    input                        wr,
+    output reg [ WIDTH - 1 : 0 ] out
 );
     always @ (posedge clk)
         if(~rst)
