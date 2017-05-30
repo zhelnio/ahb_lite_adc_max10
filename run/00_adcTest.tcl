@@ -38,8 +38,15 @@ vlog     ../../src/simulation/qsys_submodules/fiftyfivenm_adcblock_top_wrapper.v
 vlog     ../../src/simulation/qsys_submodules/adc_core_modular_adc_0.v
 vlog     ../../src/simulation/adc_core.v
 
-vlog     ../../src/*.v
-vlog     ../../src/simulation/testbench/*.v
+set p0 +define+SIMULATION
+
+set i0 +incdir+../../src/
+
+set s0 ../../src/*.v
+set s1 ../../src/simulation/testbench/*.v
+
+vlog $p0   $i0   $s0 $s1
+
 
 
 
