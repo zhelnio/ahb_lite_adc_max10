@@ -82,10 +82,11 @@ module test_adcTest;
     always #(Tadc/2) ADC_CLK = ~ADC_CLK;
 
     initial begin
-        CLK        = 1'b0;
-        RESETn     = 1'b1;
-        ADC_CLK    = 1'b0;
-        adc_clk_locked = 1'b1;
+        CLK             = 1'b0;
+        RESETn          = 1'b1;
+        ADC_CLK         = 1'b0;
+        adc_clk_locked  = 1'b0;
+        ADC_Trigger     = 1'b0;
     end
 
     task write;
@@ -119,7 +120,7 @@ module test_adcTest;
             @(posedge ADC_CLK);
             @(posedge ADC_CLK);
             RESETn = 1;
-            adc_clk_locked = 1'b0;
+            adc_clk_locked = 1'b1;
 
             //all channels enable
             write ( `ADC_REG_ADMSK,   (1'b1 << `ADC_CH_1) );
@@ -130,7 +131,7 @@ module test_adcTest;
                                     | (1'b1 << `ADC_FIELD_ADCS_TE) | (1'b1 << `ADC_FIELD_ADCS_IE) );
             read  ( `ADC_REG_ADCS );
 
-            repeat(3000) begin
+            repeat(300) begin
                 @(posedge ADC_CLK);
                 read  ( `ADC_REG_ADCS );
             end

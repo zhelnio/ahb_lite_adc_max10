@@ -149,7 +149,7 @@ module mfp_adc_max10_core
 
     priority_encoder8 mask_en
     (
-        .in     ( ADMSK & filter ),
+        .in     ( { 1'b0, ADMSK & filter } ),
         .detect ( NeedAction     ),
         .out    ( NextCell       )
     );
