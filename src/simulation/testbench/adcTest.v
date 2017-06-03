@@ -170,6 +170,25 @@ module test_adcTest;
                 read  ( `ADC_REG_ADCS );
             end
 
+            //disable free running
+            write ( `ADC_REG_ADCS,    (1'b1 << `ADC_FIELD_ADCS_EN) | (1'b1 << `ADC_FIELD_ADCS_SC));
+            read  ( `ADC_REG_ADCS );
+
+            //wait for some time
+            repeat(300)
+                @(posedge ADC_CLK);
+
+            //get temperature
+            write ( `ADC_REG_ADMSK,   (1'b1 << `ADC_CELL_T) );
+            read  ( `ADC_REG_ADMSK );
+
+            write ( `ADC_REG_ADCS,    (1'b1 << `ADC_FIELD_ADCS_EN) | (1'b1 << `ADC_FIELD_ADCS_SC) 
+                                    | (1'b1 << `ADC_FIELD_ADCS_TE) | (1'b1 << `ADC_FIELD_ADCS_IE) );
+            read  ( `ADC_REG_ADCS );
+
+            //wait for result
+            @(posedge ADC_R_EOP);
+
             //disable ADC
             write ( `ADC_REG_ADCS, 0);
 
