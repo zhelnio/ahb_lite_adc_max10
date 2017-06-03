@@ -57,25 +57,28 @@ module mfp_adc_max10_core
 
     // ADCS flags
     wire    ADCS_EN;    // ADC enable
-    wire    ADCS_SC;    // ADC start conversion
     wire    ADCS_TE;    // ADC trigger enable
+    wire    ADCS_FR;    // ADC free running
     wire    ADCS_IE;    // ADC interrupt enable
     wire    ADCS_wr     = write_enable && write_addr == `ADC_REG_ADCS;
 
     adc_reg #(.WIDTH(1)) r_ADCS_EN (CLK, RESETn, write_data[`ADC_FIELD_ADCS_EN], ADCS_wr, ADCS_EN );
-    adc_reg #(.WIDTH(1)) r_ADCS_SC (CLK, RESETn, write_data[`ADC_FIELD_ADCS_SC], ADCS_wr, ADCS_SC );
     adc_reg #(.WIDTH(1)) r_ADCS_TE (CLK, RESETn, write_data[`ADC_FIELD_ADCS_TE], ADCS_wr, ADCS_TE );
+    adc_reg #(.WIDTH(1)) r_ADCS_FR (CLK, RESETn, write_data[`ADC_FIELD_ADCS_FR], ADCS_wr, ADCS_FR );
     adc_reg #(.WIDTH(1)) r_ADCS_IE (CLK, RESETn, write_data[`ADC_FIELD_ADCS_IE], ADCS_wr, ADCS_IE );
-    
+
+    wire    ADCS_SC;    // ADC start conversion
+    wire    ADCS_SC_wr  = ADCS_wr | (ADC_R_EOP & ~ADCS_FR);
+    wire    ADCS_SC_new = ADCS_wr ? write_data[`ADC_FIELD_ADCS_SC] : 1'b0;
+    adc_reg #(.WIDTH(1)) r_ADCS_SC (CLK, RESETn, ADCS_SC_new, ADCS_SC_wr, ADCS_SC );
 
     wire    ADCS_IF;    // ADC interrupt flag
     // set ADCS.IF when conversion ends and ADCS.IE anabled
     // and reset ADCS.IF when it was writen to 1 by CPU
     wire    ADCS_IF_wr    = (ADC_R_EOP & ADCS_IE) | (ADCS_wr & write_data[`ADC_FIELD_ADCS_IF]);
     wire    ADCS_IF_new   = (ADC_R_EOP & ADCS_IE) ? 1'b1 : 1'b0;
-    assign  ADC_Interrupt = ADCS_IF;
-
     adc_reg #(.WIDTH(1)) r_ADCS_IF (CLK, RESETn, ADCS_IF_new, ADCS_IF_wr, ADCS_IF );
+    assign  ADC_Interrupt = ADCS_IF;
 
 
     //register read operations
@@ -106,7 +109,8 @@ module mfp_adc_max10_core
                 S_FIRST  = 3'b001,
                 S_NEXT   = 3'b010,
                 S_LAST   = 3'b011,
-                S_SINGLE = 3'b100;
+                S_SINGLE = 3'b100,
+                S_WAIT   = 3'b101;
 
     always @ (posedge CLK)
         if(~RESETn)
@@ -119,9 +123,9 @@ module mfp_adc_max10_core
 
     wire    [`ADC_CELL_CNT - 1 : 0] ActiveFilter = (State == S_IDLE)
                                                  ? { `ADC_CELL_CNT { 1'b1 }}
-                                                 : { `ADC_CELL_CNT { 1'b1 }} << ActiveCell + 1;
+                                                 : { `ADC_CELL_CNT { 1'b1 }} >> `ADC_CELL_CNT - ActiveCell;
 
-    wire    [`ADC_CELL_CNT - 1 : 0] NextFilter = { `ADC_CELL_CNT { 1'b1 }} << NextCell + 1;
+    wire    [`ADC_CELL_CNT - 1 : 0] NextFilter = { `ADC_CELL_CNT { 1'b1 }} >> `ADC_CELL_CNT - NextCell;
 
     wire    NeedAction;
     wire    NeedStart    = NeedAction & ADCS_EN & (ADCS_SC | (ADCS_TE & ADC_Trigger));
@@ -134,8 +138,9 @@ module mfp_adc_max10_core
             S_FIRST  : Next = ~ADC_C_Ready ? S_FIRST  : (
                                NeedAction  ? S_NEXT   : S_LAST );
             S_NEXT   : Next =  NeedAction  ? S_NEXT   : S_LAST;
-            S_LAST   : Next = ~ADC_C_Ready ? S_LAST   : S_IDLE;
-            S_SINGLE : Next = ~ADC_C_Ready ? S_SINGLE : S_IDLE;
+            S_LAST   : Next = ~ADC_C_Ready ? S_LAST   : S_WAIT;
+            S_SINGLE : Next = ~ADC_C_Ready ? S_SINGLE : S_WAIT;
+            S_WAIT   : Next = ~ADC_R_EOP   ? S_WAIT   : S_IDLE;
         endcase
 
     always @ (posedge CLK) begin
@@ -147,8 +152,7 @@ module mfp_adc_max10_core
         endcase
     end
 
-    wire [`ADC_CELL_CNT - 1 : 0] ADMSK_Filtered;
-    assign ADMSK_Filtered = {{8 - `ADC_CELL_CNT { 1'b0 }}, ADMSK & ActiveFilter };
+    wire [ 7 : 0] ADMSK_Filtered = {{8 - `ADC_CELL_CNT { 1'b0 }}, ADMSK & ActiveFilter };
 
     priority_encoder8 mask_en
     (
@@ -168,6 +172,7 @@ module mfp_adc_max10_core
             S_NEXT   : out = 3'b100;
             S_LAST   : out = 3'b101;
             S_SINGLE : out = 3'b111;
+            S_WAIT   : out = 3'b000;
         endcase
 
         case(ActiveCell)

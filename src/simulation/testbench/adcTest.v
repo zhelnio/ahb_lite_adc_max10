@@ -122,15 +122,54 @@ module test_adcTest;
             RESETn = 1;
             adc_clk_locked = 1'b1;
 
-            //all channels enable
-            write ( `ADC_REG_ADMSK,   (1'b1 << `ADC_CH_1) );
+            //channel 1 enable
+            write ( `ADC_REG_ADMSK,   (1'b1 << `ADC_CELL_1) );
             read  ( `ADC_REG_ADMSK );
 
-            //all options enable
+            //single measure with interrupt and trigger
             write ( `ADC_REG_ADCS,    (1'b1 << `ADC_FIELD_ADCS_EN) | (1'b1 << `ADC_FIELD_ADCS_SC) 
                                     | (1'b1 << `ADC_FIELD_ADCS_TE) | (1'b1 << `ADC_FIELD_ADCS_IE) );
             read  ( `ADC_REG_ADCS );
 
+            //wait for some time
+            repeat(300) begin
+                @(posedge ADC_CLK);
+                read  ( `ADC_REG_ADCS );
+            end
+
+            //add channel 2 for sequence measure check
+            write ( `ADC_REG_ADMSK,   (1'b1 << `ADC_CELL_2) | (1'b1 << `ADC_CELL_3));
+            read  ( `ADC_REG_ADMSK );
+
+            //trigger measure start
+            ADC_Trigger     = 1'b1;
+            @(posedge ADC_CLK);
+            ADC_Trigger     = 1'b0;
+
+            //wait for some time
+            repeat(300) begin
+                @(posedge ADC_CLK);
+                read  ( `ADC_REG_ADCS );
+            end
+
+            //free runing mode
+            write ( `ADC_REG_ADMSK,   (1'b1 << `ADC_CELL_4) | (1'b1 << `ADC_CELL_5));
+            read  ( `ADC_REG_ADMSK );
+
+            write ( `ADC_REG_ADCS,    (1'b1 << `ADC_FIELD_ADCS_EN) | (1'b1 << `ADC_FIELD_ADCS_SC) 
+                                    | (1'b1 << `ADC_FIELD_ADCS_FR));
+            read  ( `ADC_REG_ADCS );
+
+            //wait for some time
+            repeat(300) begin
+                @(posedge ADC_CLK);
+                read  ( `ADC_REG_ADCS );
+            end
+
+            //disable 
+            write ( `ADC_REG_ADCS, 0);
+
+            //wait for some time
             repeat(300) begin
                 @(posedge ADC_CLK);
                 read  ( `ADC_REG_ADCS );

@@ -41,5 +41,6 @@
 `define ADC_FIELD_ADCS_EN   0   // ADC enable
 `define ADC_FIELD_ADCS_SC   1   // ADC start conversion
 `define ADC_FIELD_ADCS_TE   2   // ADC trigger enable
-`define ADC_FIELD_ADCS_IE   3   // ADC interrupt enable
-`define ADC_FIELD_ADCS_IF   4   // ADC interrupt flag
+`define ADC_FIELD_ADCS_FR   3   // ADC free running
+`define ADC_FIELD_ADCS_IE   4   // ADC interrupt enable
+`define ADC_FIELD_ADCS_IF   5   // ADC interrupt flag
