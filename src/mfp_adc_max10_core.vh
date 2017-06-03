@@ -38,8 +38,8 @@
 `define ADC_CELL_T          3'h6
 
 // ADCS register bit nums
-`define ADC_FIELD_ADCS_EN   0
-`define ADC_FIELD_ADCS_SC   1
-`define ADC_FIELD_ADCS_TE   2
-`define ADC_FIELD_ADCS_IE   3
-`define ADC_FIELD_ADCS_IF   4
+`define ADC_FIELD_ADCS_EN   0   // ADC enable
+`define ADC_FIELD_ADCS_SC   1   // ADC start conversion
+`define ADC_FIELD_ADCS_TE   2   // ADC trigger enable
+`define ADC_FIELD_ADCS_IE   3   // ADC interrupt enable
+`define ADC_FIELD_ADCS_IF   4   // ADC interrupt flag

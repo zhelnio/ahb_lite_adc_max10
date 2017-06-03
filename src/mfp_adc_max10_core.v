@@ -58,7 +58,7 @@ module mfp_adc_max10_core
     // ADCS flags
     wire    ADCS_EN;    // ADC enable
     wire    ADCS_SC;    // ADC start conversion
-    wire    ADCS_TE;    // ADC auto trigger enable
+    wire    ADCS_TE;    // ADC trigger enable
     wire    ADCS_IE;    // ADC interrupt enable
     wire    ADCS_wr     = write_enable && write_addr == `ADC_REG_ADCS;
 
@@ -101,14 +101,12 @@ module mfp_adc_max10_core
 
 
     //command fsm
-    reg     [ 1 : 0 ]   State, Next;
-    parameter   S_IDLE  = 2'b00,
-                S_FIRST = 2'b01,
-                S_NEXT  = 2'b10,
-                S_LAST  = 2'b11;
-
-    reg     [ 2 : 0 ] ActiveCell;
-    wire    [ 2 : 0 ] NextCell;
+    reg     [ 2 : 0 ]   State, Next;
+    parameter   S_IDLE   = 3'b000,
+                S_FIRST  = 3'b001,
+                S_NEXT   = 3'b010,
+                S_LAST   = 3'b011,
+                S_SINGLE = 3'b100;
 
     always @ (posedge CLK)
         if(~RESETn)
@@ -116,44 +114,48 @@ module mfp_adc_max10_core
         else
             State <= Next;
 
+    reg     [ 2 : 0 ] ActiveCell;
+    wire    [ 2 : 0 ] NextCell;
+
+    wire    [`ADC_CELL_CNT - 1 : 0] ActiveFilter = (State == S_IDLE)
+                                                 ? { `ADC_CELL_CNT { 1'b1 }}
+                                                 : { `ADC_CELL_CNT { 1'b1 }} << ActiveCell + 1;
+
+    wire    [`ADC_CELL_CNT - 1 : 0] NextFilter = { `ADC_CELL_CNT { 1'b1 }} << NextCell + 1;
+
     wire    NeedAction;
-    wire    NeedStart = ADCS_EN & NeedAction & (ADCS_SC | (ADCS_TE & ADC_Trigger));
+    wire    NeedStart    = NeedAction & ADCS_EN & (ADCS_SC | (ADCS_TE & ADC_Trigger));
+    wire    NeedSequence = NeedStart && (NextFilter & ADMSK);
 
     always @ (*)
         case(State)
-            S_IDLE  :   Next = NeedStart    ? S_FIRST : S_IDLE;
-            S_FIRST :   Next = ~ADC_C_Ready ? S_FIRST : (
-                                NeedAction  ? S_NEXT  : S_LAST );
-            S_NEXT  :   Next =  NeedAction  ? S_NEXT  : S_LAST;
-            S_LAST  :   Next = S_IDLE;
+            S_IDLE   : Next = ~NeedStart   ? S_IDLE   : (
+                              NeedSequence ? S_FIRST  : S_SINGLE);
+            S_FIRST  : Next = ~ADC_C_Ready ? S_FIRST  : (
+                               NeedAction  ? S_NEXT   : S_LAST );
+            S_NEXT   : Next =  NeedAction  ? S_NEXT   : S_LAST;
+            S_LAST   : Next = ~ADC_C_Ready ? S_LAST   : S_IDLE;
+            S_SINGLE : Next = ~ADC_C_Ready ? S_SINGLE : S_IDLE;
         endcase
-
-    reg     [`ADC_CELL_CNT - 1 : 0] filter;
 
     always @ (posedge CLK) begin
         case(State)
-            S_IDLE  :   begin
-                            ActiveCell <= NextCell;
-                            filter <= (Next == S_FIRST) ? (filter << NextCell + 1 )
-                                                        : { `ADC_CELL_CNT { 1'b1 }};
-                        end
+            S_IDLE  : ActiveCell <= NextCell;
             S_FIRST,
-            S_NEXT  :   if(ADC_C_Ready) begin
-                            ActiveCell <= NextCell;
-                            filter <= (filter << NextCell + 1 );
-                        end
-
-            S_LAST  :   filter <= { `ADC_CELL_CNT { 1'b1 }};
+            S_NEXT  : if(ADC_C_Ready) ActiveCell <= NextCell;
+            default : ;
         endcase
     end
 
+    wire [`ADC_CELL_CNT - 1 : 0] ADMSK_Filtered;
+    assign ADMSK_Filtered = {{8 - `ADC_CELL_CNT { 1'b0 }}, ADMSK & ActiveFilter };
+
     priority_encoder8 mask_en
     (
-        .in     ( { 1'b0, ADMSK & filter } ),
+        .in     ( ADMSK_Filtered ),
         .detect ( NeedAction     ),
         .out    ( NextCell       )
     );
-
 
     //command output
     reg    [ 2 : 0 ] out;
@@ -161,10 +163,11 @@ module mfp_adc_max10_core
 
     always @ (*) begin
         case(State)
-            S_IDLE  : out = 3'b000;
-            S_FIRST : out = 3'b110;
-            S_NEXT  : out = 3'b100;
-            S_LAST  : out = 3'b101;
+            S_IDLE   : out = 3'b000;
+            S_FIRST  : out = 3'b110;
+            S_NEXT   : out = 3'b100;
+            S_LAST   : out = 3'b101;
+            S_SINGLE : out = 3'b111;
         endcase
 
         case(ActiveCell)
