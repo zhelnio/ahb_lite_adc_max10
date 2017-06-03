@@ -21,11 +21,7 @@
 
 vlib work
 
-vlog     ../../src/simulation/quartus_sim_lib/altera_primitives.v
-vlog     ../../src/simulation/quartus_sim_lib/220model.v
-vlog     ../../src/simulation/quartus_sim_lib/sgate.v
 vlog     ../../src/simulation/quartus_sim_lib/altera_mf.v
-vlog -sv ../../src/simulation/quartus_sim_lib/altera_lnsim.sv
 vlog     ../../src/simulation/quartus_sim_lib/fiftyfivenm_atoms.v
 vlog     ../../src/simulation/quartus_sim_lib/fiftyfivenm_atoms_ncrypt.v
 
