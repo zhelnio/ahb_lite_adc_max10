@@ -75,11 +75,13 @@ module mfp_adc_max10_core
     wire    ADCS_IF;    // ADC interrupt flag
     // set ADCS.IF when conversion ends and ADCS.IE anabled
     // and reset ADCS.IF when it was writen to 1 by CPU
-    wire    ADCS_IF_wr    = (ADC_R_EOP & ADCS_IE) | (ADCS_wr & write_data[`ADC_FIELD_ADCS_IF]);
-    wire    ADCS_IF_new   = (ADC_R_EOP & ADCS_IE) ? 1'b1 : 1'b0;
+    // or when ADC is disabled
+    wire    ADCS_IF_wr    = (ADC_R_EOP & ADCS_IE & ADCS_EN) 
+                          | (ADCS_wr & write_data[`ADC_FIELD_ADCS_IF])
+                          | ~ADCS_EN;
+    wire    ADCS_IF_new   = (ADC_R_EOP & ADCS_IE & ADCS_EN) ? 1'b1 : 1'b0;
     adc_reg #(.WIDTH(1)) r_ADCS_IF (CLK, RESETn, ADCS_IF_new, ADCS_IF_wr, ADCS_IF );
     assign  ADC_Interrupt = ADCS_IF;
-
 
     //register read operations
     wire [ 31:0 ] ADCS = 32'b0 | (ADCS_IF << `ADC_FIELD_ADCS_IF)

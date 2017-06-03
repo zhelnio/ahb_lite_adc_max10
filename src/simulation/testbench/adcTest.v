@@ -137,6 +137,10 @@ module test_adcTest;
                 read  ( `ADC_REG_ADCS );
             end
 
+            //reset interrupt flag
+            write ( `ADC_REG_ADCS,    (1'b1 << `ADC_FIELD_ADCS_EN) | (1'b1 << `ADC_FIELD_ADCS_IF) 
+                                    | (1'b1 << `ADC_FIELD_ADCS_TE) | (1'b1 << `ADC_FIELD_ADCS_IE) );
+
             //add channel 2 for sequence measure check
             write ( `ADC_REG_ADMSK,   (1'b1 << `ADC_CELL_2) | (1'b1 << `ADC_CELL_3));
             read  ( `ADC_REG_ADMSK );
@@ -166,7 +170,7 @@ module test_adcTest;
                 read  ( `ADC_REG_ADCS );
             end
 
-            //disable 
+            //disable ADC
             write ( `ADC_REG_ADCS, 0);
 
             //wait for some time
