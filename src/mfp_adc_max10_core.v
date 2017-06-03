@@ -30,7 +30,7 @@ module mfp_adc_max10_core
     output          ADC_Interrupt
 );
 
-    // ADC conversion data
+    // ADC conversion results saving
     wire [ `ADC_CH_COUNT   - 1 : 0 ] ADC_wr;
     wire [ `ADC_DATA_WIDTH - 1 : 0 ] ADC [ `ADC_CH_COUNT - 1 : 0 ];
 
