@@ -45,21 +45,21 @@ module mfp_adc_max10_core
     assign ADC_wr[`ADC_CELL_8] = ADC_R_Valid && ADC_R_Channel == `ADC_CH_8;
     assign ADC_wr[`ADC_CELL_T] = ADC_R_Valid && ADC_R_Channel == `ADC_CH_T;
 
-    adc_reg #(.WIDTH(`ADC_DATA_WIDTH)) r_ADC0 (CLK, RESETn, ADC_R_Data, ADC_wr[`ADC_CELL_0], ADC[`ADC_CELL_0] );
-    adc_reg #(.WIDTH(`ADC_DATA_WIDTH)) r_ADC1 (CLK, RESETn, ADC_R_Data, ADC_wr[`ADC_CELL_1], ADC[`ADC_CELL_1] );
-    adc_reg #(.WIDTH(`ADC_DATA_WIDTH)) r_ADC2 (CLK, RESETn, ADC_R_Data, ADC_wr[`ADC_CELL_2], ADC[`ADC_CELL_2] );
-    adc_reg #(.WIDTH(`ADC_DATA_WIDTH)) r_ADC3 (CLK, RESETn, ADC_R_Data, ADC_wr[`ADC_CELL_3], ADC[`ADC_CELL_3] );
-    adc_reg #(.WIDTH(`ADC_DATA_WIDTH)) r_ADC4 (CLK, RESETn, ADC_R_Data, ADC_wr[`ADC_CELL_4], ADC[`ADC_CELL_4] );
-    adc_reg #(.WIDTH(`ADC_DATA_WIDTH)) r_ADC5 (CLK, RESETn, ADC_R_Data, ADC_wr[`ADC_CELL_5], ADC[`ADC_CELL_5] );
-    adc_reg #(.WIDTH(`ADC_DATA_WIDTH)) r_ADC6 (CLK, RESETn, ADC_R_Data, ADC_wr[`ADC_CELL_6], ADC[`ADC_CELL_6] );
-    adc_reg #(.WIDTH(`ADC_DATA_WIDTH)) r_ADC7 (CLK, RESETn, ADC_R_Data, ADC_wr[`ADC_CELL_7], ADC[`ADC_CELL_7] );
-    adc_reg #(.WIDTH(`ADC_DATA_WIDTH)) r_ADC8 (CLK, RESETn, ADC_R_Data, ADC_wr[`ADC_CELL_8], ADC[`ADC_CELL_8] );
-    adc_reg #(.WIDTH(`ADC_DATA_WIDTH)) r_ADCT (CLK, RESETn, ADC_R_Data, ADC_wr[`ADC_CELL_T], ADC[`ADC_CELL_T] );
+    mfp_register_r #(.WIDTH(`ADC_DATA_WIDTH)) r_ADC0 (CLK, RESETn, ADC_R_Data, ADC_wr[`ADC_CELL_0], ADC[`ADC_CELL_0] );
+    mfp_register_r #(.WIDTH(`ADC_DATA_WIDTH)) r_ADC1 (CLK, RESETn, ADC_R_Data, ADC_wr[`ADC_CELL_1], ADC[`ADC_CELL_1] );
+    mfp_register_r #(.WIDTH(`ADC_DATA_WIDTH)) r_ADC2 (CLK, RESETn, ADC_R_Data, ADC_wr[`ADC_CELL_2], ADC[`ADC_CELL_2] );
+    mfp_register_r #(.WIDTH(`ADC_DATA_WIDTH)) r_ADC3 (CLK, RESETn, ADC_R_Data, ADC_wr[`ADC_CELL_3], ADC[`ADC_CELL_3] );
+    mfp_register_r #(.WIDTH(`ADC_DATA_WIDTH)) r_ADC4 (CLK, RESETn, ADC_R_Data, ADC_wr[`ADC_CELL_4], ADC[`ADC_CELL_4] );
+    mfp_register_r #(.WIDTH(`ADC_DATA_WIDTH)) r_ADC5 (CLK, RESETn, ADC_R_Data, ADC_wr[`ADC_CELL_5], ADC[`ADC_CELL_5] );
+    mfp_register_r #(.WIDTH(`ADC_DATA_WIDTH)) r_ADC6 (CLK, RESETn, ADC_R_Data, ADC_wr[`ADC_CELL_6], ADC[`ADC_CELL_6] );
+    mfp_register_r #(.WIDTH(`ADC_DATA_WIDTH)) r_ADC7 (CLK, RESETn, ADC_R_Data, ADC_wr[`ADC_CELL_7], ADC[`ADC_CELL_7] );
+    mfp_register_r #(.WIDTH(`ADC_DATA_WIDTH)) r_ADC8 (CLK, RESETn, ADC_R_Data, ADC_wr[`ADC_CELL_8], ADC[`ADC_CELL_8] );
+    mfp_register_r #(.WIDTH(`ADC_DATA_WIDTH)) r_ADCT (CLK, RESETn, ADC_R_Data, ADC_wr[`ADC_CELL_T], ADC[`ADC_CELL_T] );
 
     // ADC mask
     wire [`ADC_CH_COUNT - 1 : 0] ADMSK;
     wire                         ADMSK_wr = write_enable && write_addr == `ADC_REG_ADMSK;
-    adc_reg #(.WIDTH(`ADC_CH_COUNT))  r_ADMSK (CLK, RESETn, write_data[`ADC_CH_COUNT - 1 : 0], ADMSK_wr, ADMSK );
+    mfp_register_r #(.WIDTH(`ADC_CH_COUNT))  r_ADMSK (CLK, RESETn, write_data[`ADC_CH_COUNT - 1 : 0], ADMSK_wr, ADMSK );
 
     // ADCS flags
     wire    ADCS_EN;    // ADC enable
@@ -68,15 +68,15 @@ module mfp_adc_max10_core
     wire    ADCS_IE;    // ADC interrupt enable
     wire    ADCS_wr     = write_enable && write_addr == `ADC_REG_ADCS;
 
-    adc_reg #(.WIDTH(1)) r_ADCS_EN (CLK, RESETn, write_data[`ADC_FIELD_ADCS_EN], ADCS_wr, ADCS_EN );
-    adc_reg #(.WIDTH(1)) r_ADCS_TE (CLK, RESETn, write_data[`ADC_FIELD_ADCS_TE], ADCS_wr, ADCS_TE );
-    adc_reg #(.WIDTH(1)) r_ADCS_FR (CLK, RESETn, write_data[`ADC_FIELD_ADCS_FR], ADCS_wr, ADCS_FR );
-    adc_reg #(.WIDTH(1)) r_ADCS_IE (CLK, RESETn, write_data[`ADC_FIELD_ADCS_IE], ADCS_wr, ADCS_IE );
+    mfp_register_r #(.WIDTH(1)) r_ADCS_EN (CLK, RESETn, write_data[`ADC_FIELD_ADCS_EN], ADCS_wr, ADCS_EN );
+    mfp_register_r #(.WIDTH(1)) r_ADCS_TE (CLK, RESETn, write_data[`ADC_FIELD_ADCS_TE], ADCS_wr, ADCS_TE );
+    mfp_register_r #(.WIDTH(1)) r_ADCS_FR (CLK, RESETn, write_data[`ADC_FIELD_ADCS_FR], ADCS_wr, ADCS_FR );
+    mfp_register_r #(.WIDTH(1)) r_ADCS_IE (CLK, RESETn, write_data[`ADC_FIELD_ADCS_IE], ADCS_wr, ADCS_IE );
 
     wire    ADCS_SC;    // ADC start conversion
     wire    ADCS_SC_wr  = ADCS_wr | (ADC_R_EOP & ~ADCS_FR);
     wire    ADCS_SC_new = ADCS_wr ? write_data[`ADC_FIELD_ADCS_SC] : 1'b0;
-    adc_reg #(.WIDTH(1)) r_ADCS_SC (CLK, RESETn, ADCS_SC_new, ADCS_SC_wr, ADCS_SC );
+    mfp_register_r #(.WIDTH(1)) r_ADCS_SC (CLK, RESETn, ADCS_SC_new, ADCS_SC_wr, ADCS_SC );
 
     wire    ADCS_IF;    // ADC interrupt flag
     // set ADCS.IF when conversion ends and ADCS.IE anabled
@@ -86,7 +86,7 @@ module mfp_adc_max10_core
                           | (ADCS_wr & write_data[`ADC_FIELD_ADCS_IF])
                           | ~ADCS_EN;
     wire    ADCS_IF_new   = (ADC_R_EOP & ADCS_IE & ADCS_EN) ? 1'b1 : 1'b0;
-    adc_reg #(.WIDTH(1)) r_ADCS_IF (CLK, RESETn, ADCS_IF_new, ADCS_IF_wr, ADCS_IF );
+    mfp_register_r #(.WIDTH(1)) r_ADCS_IF (CLK, RESETn, ADCS_IF_new, ADCS_IF_wr, ADCS_IF );
     assign  ADC_Interrupt = ADCS_IF;
 
     //register read operations
@@ -165,7 +165,7 @@ module mfp_adc_max10_core
 
     wire [ 15 : 0 ] ADMSK_Filtered = {{ 15 - `ADC_CH_COUNT { 1'b0 }}, ADMSK & ActiveFilter };
 
-    priority_encoder16_back mask_en
+    priority_encoder16_r mask_en
     (
         .in     ( ADMSK_Filtered ),
         .detect ( ChUnmasked     ),
@@ -201,65 +201,4 @@ module mfp_adc_max10_core
         endcase
     end
 
-endmodule
-
-module adc_reg
-#(
-    parameter WIDTH = 32
-)
-(
-    input                        clk,
-    input                        rst,
-    input      [ WIDTH - 1 : 0 ] in,
-    input                        wr,
-    output reg [ WIDTH - 1 : 0 ] out
-);
-    always @ (posedge clk)
-        if(~rst)
-            out <= { WIDTH { 1'b0 } };
-        else
-            if(wr) out <= in;
-endmodule
-
-
-
-module priority_encoder8_back
-(
-    input       [ 7 : 0 ] in,
-    output reg            detect,
-    output reg  [ 2 : 0 ] out
-);
-    always @ (*)
-        casez(in)
-            default     : {detect, out} = 4'b0000;
-            8'b???????1 : {detect, out} = 4'b1000;
-            8'b??????10 : {detect, out} = 4'b1001;
-            8'b?????100 : {detect, out} = 4'b1010;
-            8'b????1000 : {detect, out} = 4'b1011;
-            8'b???10000 : {detect, out} = 4'b1100;
-            8'b??100000 : {detect, out} = 4'b1101;
-            8'b?1000000 : {detect, out} = 4'b1110;
-            8'b10000000 : {detect, out} = 4'b1111;
-        endcase
-endmodule
-
-module priority_encoder16_back
-(
-    input      [  15 : 0 ] in,
-    output reg             detect,
-    output reg [   3 : 0 ] out
-);
-    wire [1:0] detectL;
-    wire [2:0] preoutL [1:0];
-
-    //1st order entries
-    priority_encoder8_back e10( in[  7:0 ], detectL[0], preoutL[0] );
-    priority_encoder8_back e11( in[ 15:8 ], detectL[1], preoutL[1] );
-
-    always @ (*)
-        casez(detectL)
-            default : {detect, out} = 5'b0;
-            2'b?1   : {detect, out} = { 2'b10, preoutL[0] };
-            2'b10   : {detect, out} = { 2'b11, preoutL[1] };
-        endcase
 endmodule
