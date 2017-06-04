@@ -2,7 +2,8 @@
 
 module mfp_register_r
 #(
-    parameter WIDTH = 32
+    parameter WIDTH = 32,
+    parameter RESET = { WIDTH { 1'b0 } }
 )
 (
     input                        clk,
@@ -13,7 +14,7 @@ module mfp_register_r
 );
     always @ (posedge clk)
         if(~rst)
-            q <= { WIDTH { 1'b0 } };
+            q <= RESET;
         else
             if(wr) q <= d;
 endmodule

@@ -89,12 +89,11 @@ module mfp_adc_max10_core
     mfp_register_r #(.WIDTH(1)) r_ADCS_IF (CLK, RESETn, ADCS_IF_new, ADCS_IF_wr, ADCS_IF );
     assign  ADC_Interrupt = ADCS_IF;
 
+
     //register read operations
-    wire [ 31:0 ] ADCS = 32'b0 | (ADCS_IF << `ADC_FIELD_ADCS_IF)
-                               | (ADCS_IE << `ADC_FIELD_ADCS_IE)
-                               | (ADCS_TE << `ADC_FIELD_ADCS_TE)
-                               | (ADCS_SC << `ADC_FIELD_ADCS_SC)
-                               | (ADCS_EN << `ADC_FIELD_ADCS_EN);
+    wire [ 31:0 ] ADCS = 32'b0 | (ADCS_IF << `ADC_FIELD_ADCS_IF) | (ADCS_IE << `ADC_FIELD_ADCS_IE)
+                               | (ADCS_FR << `ADC_FIELD_ADCS_FR) | (ADCS_TE << `ADC_FIELD_ADCS_TE)
+                               | (ADCS_SC << `ADC_FIELD_ADCS_SC) | (ADCS_EN << `ADC_FIELD_ADCS_EN);
 
     always @ (*)
         case(read_addr)
@@ -115,23 +114,20 @@ module mfp_adc_max10_core
 
 
     //command fsm
-    reg     [ 2 : 0 ]   State, Next;
-    parameter   S_IDLE   = 3'b000,
-                S_FIRST  = 3'b001,
-                S_NEXT   = 3'b010,
-                S_LAST   = 3'b011,
-                S_SINGLE = 3'b100,
-                S_WAIT   = 3'b101;
+    parameter   S_IDLE   = 3'b000,  //nothing to do
+                S_FIRST  = 3'b001,  //sending request for 1st ADC channel of unmasked (SOP)
+                S_NEXT   = 3'b010,  //sending all other requests except the last one
+                S_LAST   = 3'b011,  //sending the last request (EOP)
+                S_SINGLE = 3'b100,  //sending single ADC channel request (SOP+EOP)
+                S_WAIT   = 3'b101;  //waiting for the last reply to set the operation end flag
 
-    always @ (posedge CLK)
-        if(~RESETn)
-            State <= S_IDLE;
-        else
-            State <= Next;
+    wire    [ 2 : 0 ]   State;
+    reg     [ 2 : 0 ]   Next;
+    mfp_register_r #(.WIDTH(3), .RESET(S_IDLE)) r_FSM_State (CLK, RESETn, Next, 1'b1, State );
 
     reg     [ 3 : 0 ] ActiveCell;
     wire    [ 3 : 0 ] NextCell;
-
+    
     wire    [`ADC_CH_COUNT - 1 : 0] ActiveFilter = (State == S_IDLE)
                                                  ? { `ADC_CH_COUNT { 1'b1 }}
                                                  : { `ADC_CH_COUNT { 1'b1 }} << ActiveCell + 1;
@@ -163,6 +159,7 @@ module mfp_adc_max10_core
         endcase
     end
 
+    //filter hides channel that was requested already
     wire [ 15 : 0 ] ADMSK_Filtered = {{ 15 - `ADC_CH_COUNT { 1'b0 }}, ADMSK & ActiveFilter };
 
     priority_encoder16_r mask_en
