@@ -113,21 +113,34 @@ module mfp_adc_max10_core
         endcase
 
 
-    //command fsm
-    parameter   S_IDLE   = 3'b000,  //nothing to do
-                S_FIRST  = 3'b001,  //sending request for 1st ADC channel of unmasked (SOP)
-                S_NEXT   = 3'b010,  //sending all other requests except the last one
-                S_LAST   = 3'b011,  //sending the last request (EOP)
-                S_SINGLE = 3'b100,  //sending single ADC channel request (SOP+EOP)
-                S_WAIT   = 3'b101;  //waiting for the last reply to set the operation end flag
+    // command fsm states
+    parameter   S_IDLE   = 3'b000,  // nothing to do
+                S_FIRST  = 3'b001,  // sending request for 1st ADC channel of unmasked (SOP)
+                S_NEXT   = 3'b010,  // sending all other requests except the last one
+                S_LAST   = 3'b011,  // sending the last request (EOP)
+                S_SINGLE = 3'b100,  // sending single ADC channel request (SOP+EOP)
+                S_WAIT   = 3'b101;  // waiting for the last reply to set the operation end flag
 
-    wire    [ 2 : 0 ]   State;
-    reg     [ 2 : 0 ]   Next;
+    wire [ 2 : 0 ] State;
+    reg  [ 2 : 0 ] Next;
     mfp_register_r #(.WIDTH(3), .RESET(S_IDLE)) r_FSM_State (CLK, RESETn, Next, 1'b1, State );
 
-    reg     [ 3 : 0 ] ActiveCell;
-    wire    [ 3 : 0 ] NextCell;
+    // current requested ADC channel
+    wire [ 3 : 0 ] ActiveCell;
+    wire [ 3 : 0 ] NextCell;
+    reg  ActiveCell_wr;
+    mfp_register_r #(.WIDTH(4)) r_ActiveCell (CLK, RESETn, NextCell, ActiveCell_wr, ActiveCell );
+
+    always @ (*) begin
+        case(State)
+            S_IDLE  : ActiveCell_wr = 1'b1;
+            S_FIRST,
+            S_NEXT  : ActiveCell_wr = ADC_C_Ready;
+            default : ActiveCell_wr = 1'b0;
+        endcase
+    end
     
+    // filter hides unmasked channels that were requested already
     wire    [`ADC_CH_COUNT - 1 : 0] ActiveFilter = (State == S_IDLE)
                                                  ? { `ADC_CH_COUNT { 1'b1 }}
                                                  : { `ADC_CH_COUNT { 1'b1 }} << ActiveCell + 1;
@@ -137,7 +150,18 @@ module mfp_adc_max10_core
     wire    SingleAhead; //at least one ADC channel can be requested
     wire    NeedStart     = SingleAhead & ADCS_EN & (ADCS_SC | (ADCS_TE & ADC_Trigger));
     wire    SequenceAhead = SingleAhead && (NextFilter & ADMSK); //at least 2 ADC channels can be requested
+    
+    wire [ 15 : 0 ] ADMSK_Filtered = {{ 15 - `ADC_CH_COUNT { 1'b0 }}, ADMSK & ActiveFilter };
 
+    // NextCell is the number of next unmasked channel
+    priority_encoder16_r mask_en
+    (
+        .in     ( ADMSK_Filtered ),
+        .detect ( SingleAhead     ),
+        .out    ( NextCell       )
+    );
+
+    // command fsm logic
     always @ (*)
         case(State)
             S_IDLE   : Next = ~NeedStart    ? S_IDLE   : (
@@ -151,26 +175,7 @@ module mfp_adc_max10_core
             S_WAIT   : Next = ~ADC_R_EOP    ? S_WAIT   : S_IDLE;
         endcase
 
-    always @ (posedge CLK) begin
-        case(State)
-            S_IDLE  : ActiveCell <= NextCell;
-            S_FIRST,
-            S_NEXT  : if(ADC_C_Ready) ActiveCell <= NextCell;
-            default : ;
-        endcase
-    end
-
-    //filter hides channel that was requested already
-    wire [ 15 : 0 ] ADMSK_Filtered = {{ 15 - `ADC_CH_COUNT { 1'b0 }}, ADMSK & ActiveFilter };
-
-    priority_encoder16_r mask_en
-    (
-        .in     ( ADMSK_Filtered ),
-        .detect ( SingleAhead     ),
-        .out    ( NextCell       )
-    );
-
-    //command output
+    // command output
     reg    [ 2 : 0 ] out;
     assign { ADC_C_Valid, ADC_C_SOP, ADC_C_EOP } = out;
 
