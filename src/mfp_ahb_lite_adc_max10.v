@@ -91,3 +91,4 @@ module mfp_ahb_lite_adc_max10
     );
 
 endmodule
+
