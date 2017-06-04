@@ -1,10 +1,21 @@
 
+# Please set your path to Quartus dir before script running
+set QUARTUS_INSTALL_DIR "D:/altera_lite/16.1/quartus/"
+
+if ![file isdirectory $QUARTUS_INSTALL_DIR] {   
+    echo "Quartus not found! Check run settings in .tcl script"
+}
+
 vlib work
 
-vlog     ../../src/simulation/quartus_sim_lib/altera_mf.v
-vlog     ../../src/simulation/quartus_sim_lib/fiftyfivenm_atoms.v
-vlog     ../../src/simulation/quartus_sim_lib/fiftyfivenm_atoms_ncrypt.v
+# Quartus files that are used for ADC simulation
+vlog     "$QUARTUS_INSTALL_DIR/eda/sim_lib//altera_mf.v"
+vlog     "$QUARTUS_INSTALL_DIR/eda/sim_lib/fiftyfivenm_atoms.v"
+vlog     "$QUARTUS_INSTALL_DIR/eda/sim_lib/mentor/fiftyfivenm_atoms_ncrypt.v"
 
+# These files can be generated from QSYS interface of ADC core module 
+# in "board/de10_lite/project/de10_lite_adc" project
+# Run "board/de10_lite/make_project.bat" to create this project
 vlog     ../../src/simulation/qsys_submodules/altera_modular_adc_control.v
 vlog     ../../src/simulation/qsys_submodules/altera_modular_adc_control_avrg_fifo.v
 vlog     ../../src/simulation/qsys_submodules/altera_modular_adc_control_fsm.v
