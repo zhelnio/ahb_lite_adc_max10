@@ -132,10 +132,9 @@ module test_adcTest;
             read  ( `ADC_REG_ADCS );
 
             //wait for some time
-            repeat(300) begin
+            repeat(300)
                 @(posedge ADC_CLK);
-                read  ( `ADC_REG_ADCS );
-            end
+            read  ( `ADC_REG_ADCS );
 
             //reset interrupt flag
             write ( `ADC_REG_ADCS,    (1'b1 << `ADC_FIELD_ADCS_EN) | (1'b1 << `ADC_FIELD_ADCS_IF) 
@@ -151,13 +150,26 @@ module test_adcTest;
             ADC_Trigger     = 1'b0;
 
             //wait for some time
-            repeat(300) begin
+            repeat(300)
                 @(posedge ADC_CLK);
-                read  ( `ADC_REG_ADCS );
-            end
+            read  ( `ADC_REG_ADCS );
+
+            //add channel 3 for sequence measure check
+            write ( `ADC_REG_ADMSK,   (1'b1 << `ADC_CELL_4) | (1'b1 << `ADC_CELL_5) | (1'b1 << `ADC_CELL_6));
+            read  ( `ADC_REG_ADMSK );
+
+            //trigger measure start
+            ADC_Trigger     = 1'b1;
+            @(posedge ADC_CLK);
+            ADC_Trigger     = 1'b0;
+
+            //wait for some time
+            repeat(300)
+                @(posedge ADC_CLK);
+            read  ( `ADC_REG_ADCS );
 
             //free runing mode
-            write ( `ADC_REG_ADMSK,   (1'b1 << `ADC_CELL_4) | (1'b1 << `ADC_CELL_5));
+            write ( `ADC_REG_ADMSK,   (1'b1 << `ADC_CELL_7) | (1'b1 << `ADC_CELL_8));
             read  ( `ADC_REG_ADMSK );
 
             write ( `ADC_REG_ADCS,    (1'b1 << `ADC_FIELD_ADCS_EN) | (1'b1 << `ADC_FIELD_ADCS_SC) 
@@ -165,10 +177,9 @@ module test_adcTest;
             read  ( `ADC_REG_ADCS );
 
             //wait for some time
-            repeat(300) begin
+            repeat(300)
                 @(posedge ADC_CLK);
-                read  ( `ADC_REG_ADCS );
-            end
+            read  ( `ADC_REG_ADCS );
 
             //disable free running
             write ( `ADC_REG_ADCS,    (1'b1 << `ADC_FIELD_ADCS_EN) | (1'b1 << `ADC_FIELD_ADCS_SC));
@@ -177,26 +188,26 @@ module test_adcTest;
             //wait for some time
             repeat(300)
                 @(posedge ADC_CLK);
-
-            //get temperature
-            write ( `ADC_REG_ADMSK,   (1'b1 << `ADC_CELL_T) );
-            read  ( `ADC_REG_ADMSK );
-
-            write ( `ADC_REG_ADCS,    (1'b1 << `ADC_FIELD_ADCS_EN) | (1'b1 << `ADC_FIELD_ADCS_SC) 
-                                    | (1'b1 << `ADC_FIELD_ADCS_TE) | (1'b1 << `ADC_FIELD_ADCS_IE) );
             read  ( `ADC_REG_ADCS );
 
-            //wait for result
-            @(posedge ADC_R_EOP);
+            // //get temperature
+            // write ( `ADC_REG_ADMSK,   (1'b1 << `ADC_CELL_T) );
+            // read  ( `ADC_REG_ADMSK );
+
+            // write ( `ADC_REG_ADCS,    (1'b1 << `ADC_FIELD_ADCS_EN) | (1'b1 << `ADC_FIELD_ADCS_SC) 
+            //                         | (1'b1 << `ADC_FIELD_ADCS_TE) | (1'b1 << `ADC_FIELD_ADCS_IE) );
+            // read  ( `ADC_REG_ADCS );
+
+            // //wait for result
+            // @(posedge ADC_R_EOP);
 
             //disable ADC
             write ( `ADC_REG_ADCS, 0);
 
             //wait for some time
-            repeat(300) begin
+            repeat(300)
                 @(posedge ADC_CLK);
-                read  ( `ADC_REG_ADCS );
-            end
+            read  ( `ADC_REG_ADCS );
 
             @(posedge ADC_CLK);
             @(posedge ADC_CLK);

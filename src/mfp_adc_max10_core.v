@@ -134,20 +134,21 @@ module mfp_adc_max10_core
 
     wire    [`ADC_CH_COUNT - 1 : 0] NextFilter = { `ADC_CH_COUNT { 1'b1 }} << NextCell + 1;
 
-    wire    ChUnmasked;
-    wire    NeedStart    = ChUnmasked & ADCS_EN & (ADCS_SC | (ADCS_TE & ADC_Trigger));
-    wire    NeedSequence = NeedStart && (NextFilter & ADMSK);
+    wire    SingleAhead; //at least one ADC channel can be requested
+    wire    NeedStart     = SingleAhead & ADCS_EN & (ADCS_SC | (ADCS_TE & ADC_Trigger));
+    wire    SequenceAhead = SingleAhead && (NextFilter & ADMSK); //at least 2 ADC channels can be requested
 
     always @ (*)
         case(State)
-            S_IDLE   : Next = ~NeedStart   ? S_IDLE   : (
-                              NeedSequence ? S_FIRST  : S_SINGLE);
-            S_FIRST  : Next = ~ADC_C_Ready ? S_FIRST  : (
-                                ChUnmasked ? S_NEXT   : S_LAST );
-            S_NEXT   : Next =   ChUnmasked ? S_NEXT   : S_LAST;
-            S_LAST   : Next = ~ADC_C_Ready ? S_LAST   : S_WAIT;
-            S_SINGLE : Next = ~ADC_C_Ready ? S_SINGLE : S_WAIT;
-            S_WAIT   : Next = ~ADC_R_EOP   ? S_WAIT   : S_IDLE;
+            S_IDLE   : Next = ~NeedStart    ? S_IDLE   : (
+                              SequenceAhead ? S_FIRST  : S_SINGLE );
+            S_FIRST  : Next = ~ADC_C_Ready  ? S_FIRST  : (
+                              SequenceAhead ? S_NEXT   : S_LAST );
+            S_NEXT   : Next = ~ADC_C_Ready  ? S_FIRST  : (
+                              SequenceAhead ? S_NEXT   : S_LAST );
+            S_LAST   : Next = ~ADC_C_Ready  ? S_LAST   : S_WAIT;
+            S_SINGLE : Next = ~ADC_C_Ready  ? S_SINGLE : S_WAIT;
+            S_WAIT   : Next = ~ADC_R_EOP    ? S_WAIT   : S_IDLE;
         endcase
 
     always @ (posedge CLK) begin
@@ -165,7 +166,7 @@ module mfp_adc_max10_core
     priority_encoder16_r mask_en
     (
         .in     ( ADMSK_Filtered ),
-        .detect ( ChUnmasked     ),
+        .detect ( SingleAhead     ),
         .out    ( NextCell       )
     );
 
