@@ -1,3 +1,7 @@
+/* Altera MAX10 ADC controller for MIPSfpga+ system 
+ * managed using AHB-Lite bus
+ * Copyright(c) 2017 Stanislav Zhelnio
+ */
 
 `include "mfp_adc_max10_core.vh"
 
@@ -15,7 +19,7 @@ module mfp_ahb_lite_adc_max10
     input      [  1 : 0 ]   HTRANS,
     input      [ 31 : 0 ]   HWDATA,
     input                   HWRITE,
-    output reg [ 31 : 0 ]   HRDATA,
+    output     [ 31 : 0 ]   HRDATA,
     output                  HREADY,
     output                  HRESP,
     input                   SI_Endian,  // ignored

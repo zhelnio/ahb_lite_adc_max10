@@ -1,6 +1,7 @@
-
-
-
+/* Altera MAX10 ADC controller for MIPSfpga+ system 
+ * managed using AHB-Lite bus
+ * Copyright(c) 2017 Stanislav Zhelnio
+ */
 
 `define ADC_ADDR_WIDTH  4
 `define ADC_CH_COUNT    10
@@ -10,15 +11,15 @@
 `define ADC_REG_NONE        0   // no register selected
 `define ADC_REG_ADCS        1   // ADC control and status
 `define ADC_REG_ADMSK       2   // ADC channel mask
-`define ADC_REG_ADC0        3   // ADC channel 1 conversion results
+`define ADC_REG_ADC0        3   // ADC channel 0 conversion results
 `define ADC_REG_ADC1        4   // ADC channel 1 conversion results
 `define ADC_REG_ADC2        5   // ADC channel 2 conversion results
 `define ADC_REG_ADC3        6   // ADC channel 3 conversion results
 `define ADC_REG_ADC4        7   // ADC channel 4 conversion results
 `define ADC_REG_ADC5        8   // ADC channel 5 conversion results
 `define ADC_REG_ADC6        9   // ADC channel 6 conversion results
-`define ADC_REG_ADC7       10   // ADC channel 6 conversion results
-`define ADC_REG_ADC8       11   // ADC channel 6 conversion results
+`define ADC_REG_ADC7       10   // ADC channel 7 conversion results
+`define ADC_REG_ADC8       11   // ADC channel 8 conversion results
 `define ADC_REG_ADCT       12   // ADC temperature channel conversion results
 
 `define ADC_CH_0            5'd0
