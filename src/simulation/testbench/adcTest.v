@@ -181,6 +181,27 @@ module test_adcTest;
                 @(posedge ADC_CLK);
             read  ( `ADC_REG_ADCS );
 
+            // stop free running
+            write ( `ADC_REG_ADCS, 0);
+
+            //wait for some time
+            repeat(300)
+                @(posedge ADC_CLK);
+            read  ( `ADC_REG_ADCS );
+
+            //free runing mode with one channel
+            write ( `ADC_REG_ADMSK,     (1'b1 << `ADC_CELL_8));
+            read  ( `ADC_REG_ADMSK );
+
+            write ( `ADC_REG_ADCS,    (1'b1 << `ADC_FIELD_ADCS_EN) | (1'b1 << `ADC_FIELD_ADCS_SC) 
+                                    | (1'b1 << `ADC_FIELD_ADCS_FR));
+            read  ( `ADC_REG_ADCS );
+
+            //wait for some time
+            repeat(300)
+                @(posedge ADC_CLK);
+            read  ( `ADC_REG_ADCS );
+
             //disable free running
             write ( `ADC_REG_ADCS,    (1'b1 << `ADC_FIELD_ADCS_EN) | (1'b1 << `ADC_FIELD_ADCS_SC));
             read  ( `ADC_REG_ADCS );
