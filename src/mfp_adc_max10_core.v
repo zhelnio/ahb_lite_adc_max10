@@ -30,8 +30,8 @@ module mfp_adc_max10_core
     input               ADC_R_EOP,
 
     // trigger and interrupt side
-    input           ADC_Trigger,
-    output          ADC_Interrupt
+    input               ADC_Trigger,
+    output              ADC_Interrupt
 );
 
     // ADC conversion results saving
@@ -145,11 +145,9 @@ module mfp_adc_max10_core
         endcase
     end
 
-    //refactoring
+    // get next requested (unmasked) ADC channel
     wire NextIsValid, NextIsFirst, NextIsLast;
-    wire NeedStart = NextIsValid & ADCS_EN & (ADCS_SC | (ADCS_TE & ADC_Trigger));
     wire NeedFirst = State == S_IDLE;
-    wire FreeRun   = ADCS_FR & ADCS_EN & NextIsValid;
 
     offset_revolver offset_revolver
     (
@@ -163,16 +161,19 @@ module mfp_adc_max10_core
     );
 
     // command fsm logic
+    wire NeedStart = NextIsValid & ADCS_EN & (ADCS_SC | (ADCS_TE & ADC_Trigger));
+    wire FreeRun   = ADCS_FR & ADCS_EN & NextIsValid;
+
     always @ (*)
         case(State)
             S_IDLE   : Next = ~NeedStart   ? S_IDLE   : (
                               FreeRun      ? S_FIRST  : (
                               NextIsLast   ? S_SINGLE : S_FIRST ));
             S_FIRST  : Next = ~ADC_C_Ready ? S_FIRST  : (
-                              FreeRun      ? S_NEXT  : (
+                              FreeRun      ? S_NEXT   : (
                               NextIsLast   ? S_LAST   : S_NEXT ));
             S_NEXT   : Next = ~ADC_C_Ready | FreeRun ? S_NEXT   : (
-                              NextIsLast   ? S_LAST : S_NEXT );
+                              NextIsLast   ? S_LAST   : S_NEXT );
             S_LAST   : Next = ~ADC_C_Ready ? S_LAST   : S_WAIT;
             S_SINGLE : Next = ~ADC_C_Ready ? S_SINGLE : S_WAIT;
             S_WAIT   : Next = ~ADC_R_EOP   ? S_WAIT   : S_IDLE;
