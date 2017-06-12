@@ -173,6 +173,7 @@ module test_adcTest;
             read  ( `ADC_REG_ADMSK );
 
             write ( `ADC_REG_ADCS,    (1'b1 << `ADC_FIELD_ADCS_EN) | (1'b1 << `ADC_FIELD_ADCS_SC) 
+                                    | (1'b1 << `ADC_FIELD_ADCS_IF) | (1'b1 << `ADC_FIELD_ADCS_IE)
                                     | (1'b1 << `ADC_FIELD_ADCS_FR));
             read  ( `ADC_REG_ADCS );
 
@@ -211,16 +212,16 @@ module test_adcTest;
                 @(posedge ADC_CLK);
             read  ( `ADC_REG_ADCS );
 
-            //get temperature
-            write ( `ADC_REG_ADMSK,   (1'b1 << `ADC_CELL_T) );
-            read  ( `ADC_REG_ADMSK );
+            // //get temperature
+            // write ( `ADC_REG_ADMSK,   (1'b1 << `ADC_CELL_T) );
+            // read  ( `ADC_REG_ADMSK );
 
-            write ( `ADC_REG_ADCS,    (1'b1 << `ADC_FIELD_ADCS_EN) | (1'b1 << `ADC_FIELD_ADCS_SC) 
-                                    | (1'b1 << `ADC_FIELD_ADCS_TE) | (1'b1 << `ADC_FIELD_ADCS_IE) );
-            read  ( `ADC_REG_ADCS );
+            // write ( `ADC_REG_ADCS,    (1'b1 << `ADC_FIELD_ADCS_EN) | (1'b1 << `ADC_FIELD_ADCS_SC) 
+            //                         | (1'b1 << `ADC_FIELD_ADCS_TE) | (1'b1 << `ADC_FIELD_ADCS_IE) );
+            // read  ( `ADC_REG_ADCS );
 
-            //wait for result
-            @(posedge ADC_R_EOP);
+            // //wait for result
+            // @(posedge ADC_R_EOP);
 
             //disable ADC
             write ( `ADC_REG_ADCS, 0);
